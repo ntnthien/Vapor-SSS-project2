@@ -1,3 +1,4 @@
+import Foundation
 import Routing
 import Vapor
 
@@ -10,7 +11,23 @@ public func routes(_ router: Router) throws {
     }
     
     router.get("polls", "list")  { req -> Future<[Poll]> in
-        let poll = Poll(id: nil, title: "Title", option1: "Option 1", option2: "Option 2", votes1: 0, votes2: 0)
-        return Future.map(on: req) { return [poll] }
+        return Poll.query(on: req).all()
+    }
+    
+    router.post("polls", "vote", UUID.parameter, Int.parameter) { req -> Future<Poll> in
+        let id = try req.parameter(UUID.self)
+        let vote = try req.parameter(Int.self)
+        return try Poll.find(id, on: req).flatMap(to: Poll.self) { poll in
+            guard var poll = poll else {
+                throw Abort(.notFound)
+            }
+            if vote == 1 {
+                poll.votes1 += 1
+            } else {
+                poll.votes2 += 1
+                
+            }
+            return poll.save(on: req)
+        }
     }
 }
