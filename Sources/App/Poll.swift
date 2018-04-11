@@ -5,8 +5,10 @@
 
 import Foundation
 import Vapor
+import Fluent
+import FluentSQLite
 
-struct Poll: Content {
+struct Poll: Content, SQLiteUUIDModel {
     var id: UUID?
     var title: String
     var option1: String
@@ -14,3 +16,5 @@ struct Poll: Content {
     var votes1: Int
     var votes2: Int
 }
+
+extension Poll: Migration { }
